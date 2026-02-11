@@ -1,0 +1,1 @@
+Masjid APP - Mobile codebase setup
