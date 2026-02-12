@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -12,6 +12,7 @@ import {
   BellIcon,
   ChevronDownIcon,
 } from '@/components/ui/Icons';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface NavItemProps {
   label: string;
@@ -25,10 +26,9 @@ const NavItem = ({ label, href, icon, isActive = false }: NavItemProps) => (
     href={href}
     className={`
       flex items-center gap-2 px-4 py-3 rounded-[12px] transition-colors
-      ${
-        isActive
-          ? 'bg-[var(--brand-10)] text-[var(--brand)]'
-          : 'text-[var(--grey-800)] hover:bg-[var(--neutral-100)]'
+      ${isActive
+        ? 'bg-[var(--brand-10)] text-[var(--brand)]'
+        : 'text-[var(--grey-800)] hover:bg-[var(--neutral-100)]'
       }
     `}
   >
@@ -44,7 +44,20 @@ interface HeaderProps {
 }
 
 export default function Header({ activeNav = 'dashboard' }: HeaderProps) {
+  const { user, logout } = useAuth();
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const navItems: NavItemProps[] = [
     {
@@ -79,6 +92,14 @@ export default function Header({ activeNav = 'dashboard' }: HeaderProps) {
     },
   ];
 
+  // User initials for avatar fallback
+  const initials = user?.fullName
+    ?.split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2) || '?';
+
   return (
     <header className="w-full bg-white shadow-[0_4px_21px_rgba(0,0,0,0.1)]">
       <div className="max-w-[1440px] mx-auto px-[60px] py-4 flex items-center justify-between h-[100px]">
@@ -109,34 +130,50 @@ export default function Header({ activeNav = 'dashboard' }: HeaderProps) {
           </button>
 
           {/* User Avatar & Dropdown */}
-          <div className="relative">
+          <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+              className="flex items-center gap-3 hover:opacity-80 transition-opacity"
             >
-              <div className="relative w-[40px] h-[40px] rounded-full overflow-hidden">
-                <Image
-                  src="/images/user-avatar.png"
-                  alt="User Avatar"
-                  fill
-                  className="object-cover"
-                />
+              {/* Initials Avatar */}
+              <div className="w-[40px] h-[40px] rounded-full bg-[var(--brand)] flex items-center justify-center">
+                <span className="font-urbanist font-semibold text-[14px] text-white">
+                  {initials}
+                </span>
               </div>
+              {user && (
+                <span className="font-urbanist font-medium text-[14px] text-[var(--grey-800)] hidden lg:block">
+                  {user.fullName}
+                </span>
+              )}
               <ChevronDownIcon size={16} className="text-[var(--grey-800)]" />
             </button>
 
             {/* Dropdown Menu */}
             {showUserMenu && (
-              <div className="absolute right-0 top-full mt-2 w-[200px] bg-white rounded-[12px] shadow-[0_4px_21px_rgba(0,0,0,0.1)] py-2 z-50">
+              <div className="absolute right-0 top-full mt-2 w-[220px] bg-white rounded-[12px] shadow-[0_4px_21px_rgba(0,0,0,0.1)] py-2 z-50">
+                {/* User info section */}
+                {user && (
+                  <div className="px-4 py-2 border-b border-[var(--border-01)]">
+                    <p className="font-urbanist font-semibold text-[14px] text-[var(--grey-800)]">
+                      {user.fullName}
+                    </p>
+                    <p className="font-urbanist text-[12px] text-[var(--neutral-500)]">
+                      {user.email}
+                    </p>
+                  </div>
+                )}
                 <Link
                   href="/profile"
                   className="block px-4 py-2 font-urbanist text-[14px] text-[var(--grey-800)] hover:bg-[var(--neutral-100)]"
+                  onClick={() => setShowUserMenu(false)}
                 >
                   Profile
                 </Link>
                 <Link
                   href="/settings"
                   className="block px-4 py-2 font-urbanist text-[14px] text-[var(--grey-800)] hover:bg-[var(--neutral-100)]"
+                  onClick={() => setShowUserMenu(false)}
                 >
                   Settings
                 </Link>
@@ -144,8 +181,8 @@ export default function Header({ activeNav = 'dashboard' }: HeaderProps) {
                 <button
                   className="w-full text-left px-4 py-2 font-urbanist text-[14px] text-[var(--auxiliary-700)] hover:bg-[var(--neutral-100)]"
                   onClick={() => {
-                    // TODO: Implement logout
-                    console.log('Logout clicked');
+                    setShowUserMenu(false);
+                    logout();
                   }}
                 >
                   Logout

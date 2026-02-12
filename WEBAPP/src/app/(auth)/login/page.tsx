@@ -1,17 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
-import { UserIcon } from '@/components/ui/Icons';
+import { useAuth } from '@/contexts/AuthContext';
+import { ApiError } from '@/lib/api/client';
 import type { LoginFormData, LoginFormErrors } from '@/types';
 
 export default function LoginPage() {
-  const router = useRouter();
+  const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<LoginFormData>({
-    username: '',
+    email: '',
     password: '',
   });
   const [errors, setErrors] = useState<LoginFormErrors>({});
@@ -19,14 +19,16 @@ export default function LoginPage() {
   const validateForm = (): boolean => {
     const newErrors: LoginFormErrors = {};
 
-    if (!formData.username.trim()) {
-      newErrors.username = 'Username is required';
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Invalid email format';
     }
 
     if (!formData.password) {
       newErrors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+    } else if (formData.password.length < 8) {
+      newErrors.password = 'Password must be at least 8 characters';
     }
 
     setErrors(newErrors);
@@ -39,21 +41,26 @@ export default function LoginPage() {
     if (!validateForm()) return;
 
     setIsLoading(true);
+    setErrors({});
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      // For demo: check for hardcoded credentials
-      if (formData.username === 'admin' && formData.password === 'password123') {
-        // Successful login - redirect to dashboard
-        router.push('/dashboard');
+      await login(formData.email, formData.password);
+      // Redirect is handled by AuthContext
+    } catch (error) {
+      if (error instanceof ApiError) {
+        if (error.code === 'VALIDATION_ERROR' && error.details) {
+          // Map field-level errors from backend
+          setErrors({
+            email: error.details.email,
+            password: error.details.password,
+          });
+        } else {
+          // General errors (invalid credentials, account locked, etc.)
+          setErrors({ general: error.message });
+        }
       } else {
-        // Show error
-        setErrors({ password: 'Incorrect Password' });
+        setErrors({ general: 'An error occurred. Please try again.' });
       }
-    } catch {
-      setErrors({ password: 'An error occurred. Please try again.' });
     } finally {
       setIsLoading(false);
     }
@@ -62,8 +69,8 @@ export default function LoginPage() {
   const handleInputChange = (field: keyof LoginFormData) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({ ...prev, [field]: e.target.value }));
     // Clear error when user starts typing
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }));
+    if (errors[field] || errors.general) {
+      setErrors((prev) => ({ ...prev, [field]: undefined, general: undefined }));
     }
   };
 
@@ -84,17 +91,26 @@ export default function LoginPage() {
               </h1>
             </div>
 
+            {/* General Error */}
+            {errors.general && (
+              <div className="mb-5 p-4 rounded-[12px] bg-red-50 border border-red-200">
+                <p className="font-urbanist text-[14px] text-[var(--error)]">
+                  {errors.general}
+                </p>
+              </div>
+            )}
+
             {/* Form */}
             <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-              {/* Username Field */}
+              {/* Email Field */}
               <Input
-                label="Username"
-                placeholder="Username"
-                value={formData.username}
-                onChange={handleInputChange('username')}
-                error={errors.username}
-                icon={<UserIcon className="text-[var(--neutral-500)]" size={20} />}
-                autoComplete="username"
+                label="Email"
+                placeholder="admin@masjid-app.com"
+                type="email"
+                value={formData.email}
+                onChange={handleInputChange('email')}
+                error={errors.email}
+                autoComplete="email"
               />
 
               {/* Password Field */}
