@@ -48,11 +48,12 @@ export interface User {
 
 // Login Form Types
 export interface LoginFormData {
-  username: string;
+  email: string;
   password: string;
 }
 
 export interface LoginFormErrors {
-  username?: string;
+  email?: string;
   password?: string;
+  general?: string;
 }
