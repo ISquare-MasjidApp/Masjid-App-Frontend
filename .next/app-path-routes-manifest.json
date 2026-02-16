@@ -1,0 +1,9 @@
+{
+  "/(auth)/login/page": "/login",
+  "/(dashboard)/dashboard/page": "/dashboard",
+  "/(dashboard)/prayer-management/page": "/prayer-management",
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/favicon.ico/route": "/favicon.ico",
+  "/page": "/"
+}
