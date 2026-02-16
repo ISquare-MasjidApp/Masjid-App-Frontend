@@ -1031,3 +1031,47 @@ It can also happen if the client has a browser extension installed which messes 
 [15:58:10.720] Browser LOG     [API Request] GET /admin/auth/me
 [15:58:10.720] Browser LOG     [API Response] GET /admin/auth/me -> 200
 [15:58:10.720] Browser LOG     [API Response] GET /admin/prayer-times?startDate=2026-02-01&endDate=2026-02-28&size=31 -> 200
+[19:19:11.962] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[19:19:12.162] Browser LOG     [API Request] GET /admin/prayer-times?startDate=2026-02-01&endDate=2026-02-28&size=31
+[19:19:12.162] Browser LOG     [API Request] POST /admin/auth/refresh
+[19:19:12.162] Browser WARN    Image with src "/images/nwk-logo.png" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[19:19:12.162] Browser LOG     [API Response] GET /admin/prayer-times?startDate=2026-02-01&endDate=2026-02-28&size=31 -> 401
+[19:19:12.162] Browser LOG     [API Response] POST /admin/auth/refresh -> 200
+[19:19:12.162] Browser LOG     [API Request] GET /admin/auth/me
+[19:19:12.162] Browser LOG     [API Request] GET /admin/prayer-times?startDate=2026-02-01&endDate=2026-02-28&size=31
+[19:19:12.162] Browser LOG     [API Response] GET /admin/auth/me -> 200
+[19:19:12.162] Browser LOG     [API Response] GET /admin/prayer-times?startDate=2026-02-01&endDate=2026-02-28&size=31 -> 200
+[19:19:12.789] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[19:19:12.933] Browser LOG     [API Request] GET /admin/prayer-times?startDate=2026-02-01&endDate=2026-02-28&size=31
+[19:19:12.933] Browser LOG     [API Request] POST /admin/auth/refresh
+[19:19:12.933] Browser WARN    Image with src "/images/nwk-logo.png" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[19:19:12.933] Browser LOG     [API Response] GET /admin/prayer-times?startDate=2026-02-01&endDate=2026-02-28&size=31 -> 401
+[19:19:12.933] Browser LOG     [API Response] POST /admin/auth/refresh -> 200
+[19:19:12.933] Browser LOG     [API Request] GET /admin/auth/me
+[19:19:12.933] Browser LOG     [API Request] GET /admin/prayer-times?startDate=2026-02-01&endDate=2026-02-28&size=31
+[19:19:12.933] Browser LOG     [API Response] GET /admin/auth/me -> 200
+[19:19:12.933] Browser LOG     [API Response] GET /admin/prayer-times?startDate=2026-02-01&endDate=2026-02-28&size=31 -> 200
+[19:19:19.361] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[19:19:19.502] Browser LOG     [API Request] GET /admin/prayer-times?startDate=2026-02-01&endDate=2026-02-28&size=31
+[19:19:19.502] Browser LOG     [API Request] POST /admin/auth/refresh
+[19:19:19.502] Browser WARN    Image with src "/images/nwk-logo.png" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[19:19:19.502] Browser LOG     [API Response] GET /admin/prayer-times?startDate=2026-02-01&endDate=2026-02-28&size=31 -> 401
+[19:19:19.502] Browser LOG     [API Response] POST /admin/auth/refresh -> 200
+[19:19:19.502] Browser LOG     [API Request] GET /admin/auth/me
+[19:19:19.502] Browser LOG     [API Request] GET /admin/prayer-times?startDate=2026-02-01&endDate=2026-02-28&size=31
+[19:19:19.502] Browser LOG     [API Response] GET /admin/auth/me -> 200
+[19:19:19.502] Browser LOG     [API Response] GET /admin/prayer-times?startDate=2026-02-01&endDate=2026-02-28&size=31 -> 200
+[19:19:20.912] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[19:19:21.049] Browser LOG     [API Request] GET /admin/prayer-times?startDate=2026-02-01&endDate=2026-02-28&size=31
+[19:19:21.050] Browser LOG     [API Request] POST /admin/auth/refresh
+[19:19:21.050] Browser WARN    Image with src "/images/nwk-logo.png" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[19:19:21.050] Browser LOG     [API Response] GET /admin/prayer-times?startDate=2026-02-01&endDate=2026-02-28&size=31 -> 401
+[19:19:21.050] Browser LOG     [API Response] POST /admin/auth/refresh -> 200
+[19:19:21.050] Browser LOG     [API Request] GET /admin/auth/me
+[19:19:21.050] Browser LOG     [API Request] GET /admin/prayer-times?startDate=2026-02-01&endDate=2026-02-28&size=31
+[19:19:21.050] Browser LOG     [API Response] GET /admin/auth/me -> 200
+[19:19:21.050] Browser LOG     [API Response] GET /admin/prayer-times?startDate=2026-02-01&endDate=2026-02-28&size=31 -> 200
+[19:19:26.154] Browser LOG     [API Request] GET /admin/prayer-times?startDate=2026-02-01&endDate=2026-02-28&size=31
+[19:19:26.154] Browser LOG     [API Request] GET /admin/prayer-times?startDate=2026-02-01&endDate=2026-02-28&size=31
+[19:19:26.154] Browser LOG     [API Response] GET /admin/prayer-times?startDate=2026-02-01&endDate=2026-02-28&size=31 -> 200
+[19:19:26.154] Browser LOG     [API Response] GET /admin/prayer-times?startDate=2026-02-01&endDate=2026-02-28&size=31 -> 200
