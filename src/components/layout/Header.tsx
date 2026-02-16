@@ -1,0 +1,197 @@
+'use client';
+
+import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import {
+  DashboardIcon,
+  PrayerIcon,
+  MegaphoneIcon,
+  CampaignIcon,
+  SettingsIcon,
+  BellIcon,
+  ChevronDownIcon,
+} from '@/components/ui/Icons';
+import { useAuth } from '@/contexts/AuthContext';
+
+interface NavItemProps {
+  label: string;
+  href: string;
+  icon: React.ReactNode;
+  isActive?: boolean;
+}
+
+const NavItem = ({ label, href, icon, isActive = false }: NavItemProps) => (
+  <Link
+    href={href}
+    className={`
+      flex items-center gap-2 px-4 py-3 rounded-[12px] transition-colors
+      ${isActive
+        ? 'bg-[var(--brand-10)] text-[var(--brand)]'
+        : 'text-[var(--grey-800)] hover:bg-[var(--neutral-100)]'
+      }
+    `}
+  >
+    <span className={isActive ? 'text-[var(--brand)]' : 'text-[var(--grey-800)]'}>{icon}</span>
+    <span className={`font-urbanist text-[14px] ${isActive ? 'font-semibold' : 'font-medium'}`}>
+      {label}
+    </span>
+  </Link>
+);
+
+interface HeaderProps {
+  activeNav?: string;
+}
+
+export default function Header({ activeNav = 'dashboard' }: HeaderProps) {
+  const { user, logout } = useAuth();
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const navItems: NavItemProps[] = [
+    {
+      label: 'Dashboard',
+      href: '/dashboard',
+      icon: <DashboardIcon size={20} />,
+      isActive: activeNav === 'dashboard',
+    },
+    {
+      label: 'Prayer Management',
+      href: '/prayer-management',
+      icon: <PrayerIcon size={20} />,
+      isActive: activeNav === 'prayer',
+    },
+    {
+      label: 'Event & Announcements',
+      href: '/events',
+      icon: <MegaphoneIcon size={20} />,
+      isActive: activeNav === 'events',
+    },
+    {
+      label: 'Campaign',
+      href: '/campaigns',
+      icon: <CampaignIcon size={20} />,
+      isActive: activeNav === 'campaigns',
+    },
+    {
+      label: 'App Settings',
+      href: '/settings',
+      icon: <SettingsIcon size={20} />,
+      isActive: activeNav === 'settings',
+    },
+  ];
+
+  // User initials for avatar fallback
+  const initials = user?.fullName
+    ?.split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2) || '?';
+
+  return (
+    <header className="w-full bg-white shadow-[0_4px_21px_rgba(0,0,0,0.1)]">
+      <div className="max-w-[1440px] mx-auto px-[60px] py-4 flex items-center justify-between h-[100px]">
+        {/* Logo */}
+        <Link href="/dashboard" className="relative w-[68px] h-[68px]">
+          <Image
+            src="/images/nwk-logo.png"
+            alt="NWK Muslim Association"
+            fill
+            className="object-contain"
+          />
+        </Link>
+
+        {/* Navigation */}
+        <nav className="flex items-center gap-2">
+          {navItems.map((item) => (
+            <NavItem key={item.href} {...item} />
+          ))}
+        </nav>
+
+        {/* Right Side - Notification & User */}
+        <div className="flex items-center gap-6">
+          {/* Notification Bell */}
+          <button className="relative p-2 hover:bg-[var(--neutral-100)] rounded-full transition-colors">
+            <BellIcon size={20} className="text-[var(--grey-800)]" />
+            {/* Notification Badge */}
+            <span className="absolute top-1 right-1 w-2 h-2 bg-[var(--auxiliary-700)] rounded-full" />
+          </button>
+
+          {/* User Avatar & Dropdown */}
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setShowUserMenu(!showUserMenu)}
+              className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+            >
+              {/* Initials Avatar */}
+              <div className="w-[40px] h-[40px] rounded-full bg-[var(--brand)] flex items-center justify-center">
+                <span className="font-urbanist font-semibold text-[14px] text-white">
+                  {initials}
+                </span>
+              </div>
+              {user && (
+                <span className="font-urbanist font-medium text-[14px] text-[var(--grey-800)] hidden lg:block">
+                  {user.fullName}
+                </span>
+              )}
+              <ChevronDownIcon size={16} className="text-[var(--grey-800)]" />
+            </button>
+
+            {/* Dropdown Menu */}
+            {showUserMenu && (
+              <div className="absolute right-0 top-full mt-2 w-[220px] bg-white rounded-[12px] shadow-[0_4px_21px_rgba(0,0,0,0.1)] py-2 z-50">
+                {/* User info section */}
+                {user && (
+                  <div className="px-4 py-2 border-b border-[var(--border-01)]">
+                    <p className="font-urbanist font-semibold text-[14px] text-[var(--grey-800)]">
+                      {user.fullName}
+                    </p>
+                    <p className="font-urbanist text-[12px] text-[var(--neutral-500)]">
+                      {user.email}
+                    </p>
+                  </div>
+                )}
+                <Link
+                  href="/profile"
+                  className="block px-4 py-2 font-urbanist text-[14px] text-[var(--grey-800)] hover:bg-[var(--neutral-100)]"
+                  onClick={() => setShowUserMenu(false)}
+                >
+                  Profile
+                </Link>
+                <Link
+                  href="/settings"
+                  className="block px-4 py-2 font-urbanist text-[14px] text-[var(--grey-800)] hover:bg-[var(--neutral-100)]"
+                  onClick={() => setShowUserMenu(false)}
+                >
+                  Settings
+                </Link>
+                <hr className="my-2 border-[var(--border-01)]" />
+                <button
+                  className="w-full text-left px-4 py-2 font-urbanist text-[14px] text-[var(--auxiliary-700)] hover:bg-[var(--neutral-100)]"
+                  onClick={() => {
+                    setShowUserMenu(false);
+                    logout();
+                  }}
+                >
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+}
