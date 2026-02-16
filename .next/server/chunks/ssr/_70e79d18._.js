@@ -1,8 +1,0 @@
-module.exports=[35112,(a,b,c)=>{"use strict";b.exports=a.r(42602).vendored["react-ssr"].ReactDOM},40777,a=>{"use strict";var b=a.i(87924),c=a.i(72131),d=a.i(50944),e=a.i(71987);function f({onComplete:a,duration:d=2500}){let[f,g]=(0,c.useState)(!0),[h,i]=(0,c.useState)(!1);return((0,c.useEffect)(()=>{let b=setTimeout(()=>{i(!0),setTimeout(()=>{g(!1),a?.()},500)},d);return()=>clearTimeout(b)},[d,a]),f)?(0,b.jsxs)("div",{className:`
-        fixed inset-0 z-50 bg-white 
-        flex flex-col items-center justify-center
-        transition-opacity duration-500
-        ${h?"opacity-0":"opacity-100"}
-      `,children:[(0,b.jsx)("div",{className:"relative w-[278px] h-[278px] animate-fade-in",children:(0,b.jsx)(e.default,{src:"/images/nwk-logo.png",alt:"NWK Muslim Association",fill:!0,className:"object-contain",priority:!0})}),(0,b.jsx)("div",{className:"absolute bottom-[80px] left-1/2 -translate-x-1/2",children:(0,b.jsx)("div",{className:"relative w-[168px] h-[54px]",children:(0,b.jsx)(e.default,{src:"/images/isquare-logo.png",alt:"iSquare Tech Solutions",fill:!0,className:"object-contain"})})})]}):null}var g=a.i(11642);function h(){let a=(0,d.useRouter)(),{isAuthenticated:e,isLoading:h}=(0,g.useAuth)(),[i,j]=(0,c.useState)(!0);return i?(0,b.jsx)(f,{onComplete:()=>{j(!1),h||(e?a.push("/dashboard"):a.push("/login"))},duration:2500}):h?(0,b.jsx)("div",{className:"min-h-screen flex items-center justify-center",children:(0,b.jsx)("div",{className:"w-8 h-8 border-4 border-[var(--brand)] border-t-transparent rounded-full animate-spin"})}):null}a.s(["default",()=>h],40777)}];
-
-//# sourceMappingURL=_70e79d18._.js.map
