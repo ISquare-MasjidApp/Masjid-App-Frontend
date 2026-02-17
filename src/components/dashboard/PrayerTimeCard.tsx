@@ -13,10 +13,9 @@ export default function PrayerTimeCard({ prayer }: PrayerTimeCardProps) {
         flex flex-col items-center justify-center
         px-6 py-4 rounded-[12px] min-w-[170px]
         transition-all duration-200 border
-        ${
-          prayer.isActive
-            ? 'bg-[var(--brand)] border-[var(--brand)] text-white shadow-lg'
-            : 'bg-[var(--brand-05)] border-[var(--brand)] hover:shadow-md'
+        ${prayer.isActive
+          ? 'bg-[var(--brand)] border-[var(--brand)] text-white shadow-lg'
+          : 'bg-[var(--brand-05)] border-[var(--brand)] hover:shadow-md'
         }
       `}
     >
@@ -41,14 +40,16 @@ export default function PrayerTimeCard({ prayer }: PrayerTimeCardProps) {
       </span>
 
       {/* Athan Time */}
-      <span
-        className={`
-          font-urbanist text-[20px] mt-0.5
-          ${prayer.isActive ? 'text-white/60' : 'text-[#579E6D]'}
-        `}
-      >
-        Athan {prayer.athanTime}
-      </span>
+      {prayer.athanTime && (
+        <span
+          className={`
+            font-urbanist text-[20px] mt-0.5
+            ${prayer.isActive ? 'text-white/60' : 'text-[#579E6D]'}
+            `}
+        >
+          Athan {prayer.athanTime}
+        </span>
+      )}
     </div>
   );
 }
