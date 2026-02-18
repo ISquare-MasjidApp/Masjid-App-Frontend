@@ -13,9 +13,19 @@ export interface Event {
   category: string;
   description: string;
   speaker?: string;
+  location?: string;
   date: string;
   startTime: string;
   endTime: string;
+  status: 'sent' | 'draft' | 'past';
+}
+
+// Announcement Types
+export interface Announcement {
+  id: string;
+  title: string;
+  date: string;
+  description: string;
 }
 
 // Campaign Types
