@@ -29,6 +29,7 @@ const upcomingEvents: Event[] = [
     date: '17 Oct 2025',
     startTime: '07:00 PM',
     endTime: '08:30 PM',
+    status: 'sent',
   },
   {
     id: '2',
@@ -40,6 +41,7 @@ const upcomingEvents: Event[] = [
     date: '17 Oct 2025',
     startTime: '07:00 PM',
     endTime: '08:30 PM',
+    status: 'sent',
   },
 ];
 
