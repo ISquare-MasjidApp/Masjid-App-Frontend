@@ -204,7 +204,7 @@ export default function EventsPage() {
                                         </button>
                                         <button
                                             onClick={() => setViewMode('calendar')}
-                                            className={`w-[36px] h-[36px] flex items-center justify-center rounded-[8px] transition-colors ${viewMode === 'calendar' ? 'bg-gray-100 text-[var(--grey-800)]' : 'text-[var(--grey-400)] hover:bg-gray-50'}`}
+                                            className={`w-[36px] h-[36px] flex items-center justify-center rounded-[8px] transition-colors ${(viewMode as string) === 'calendar' ? 'bg-gray-100 text-[var(--grey-800)]' : 'text-[var(--grey-400)] hover:bg-gray-50'}`}
                                         >
                                             <CalendarIcon size={24} className="stroke-[1.5]" />
                                         </button>
