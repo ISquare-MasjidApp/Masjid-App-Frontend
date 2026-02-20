@@ -6,6 +6,7 @@ import PrayerTimeCard from '@/components/dashboard/PrayerTimeCard';
 import QuickActionButton from '@/components/dashboard/QuickActionButton';
 import EventCard from '@/components/dashboard/EventCard';
 import CampaignCard from '@/components/dashboard/CampaignCard';
+import Skeleton from '@/components/ui/Skeleton';
 import type { PrayerTime, Event, Campaign } from '@/types';
 import { getPrayerTimes } from '@/lib/api/prayer-times';
 import type { PrayerTimeResponse, PrayersData } from '@/types/prayer-times';
@@ -27,6 +28,7 @@ function formatTime12h(time24: string | undefined): string {
   return `${hours}:${minutes} ${ampm}`;
 }
 
+// ... (Events and Campaigns constants remain unchanged) ...
 const upcomingEvents: Event[] = [
   {
     id: '1',
@@ -38,6 +40,7 @@ const upcomingEvents: Event[] = [
     date: '17 Oct 2025',
     startTime: '07:00 PM',
     endTime: '08:30 PM',
+    status: 'sent',
   },
   {
     id: '2',
@@ -49,6 +52,7 @@ const upcomingEvents: Event[] = [
     date: '17 Oct 2025',
     startTime: '07:00 PM',
     endTime: '08:30 PM',
+    status: 'sent',
   },
 ];
 
@@ -147,9 +151,40 @@ export default function DashboardPage() {
     }
   };
 
+  const handleJumpToToday = () => {
+    const now = new Date();
+    setSelectedDate(now);
+    if (now.getMonth() !== currentMonth || now.getFullYear() !== currentYear) {
+      setCurrentMonth(now.getMonth());
+      setCurrentYear(now.getFullYear());
+    }
+  };
+
   // Get data for selected date
   const selectedDateKey = formatDateKey(selectedDate);
   const daysPrayerData = prayerData.find(p => p.date === selectedDateKey);
+
+  /* ── determine active prayer ── */
+  const getActivePrayer = (): keyof PrayersData | null => {
+    if (!daysPrayerData) return null;
+    const now = new Date();
+    // Only highlight if selected date is today
+    const isToday = selectedDate.toDateString() === now.toDateString();
+    if (!isToday) return null;
+
+    const currentMin = now.getHours() * 60 + now.getMinutes();
+    const order: (keyof PrayersData)[] = ['fajr', 'sunrise', 'zuhr', 'asr', 'maghrib', 'isha'];
+    let active: keyof PrayersData | null = null;
+    for (const p of order) {
+      const t = daysPrayerData.prayers[p]?.jamah || daysPrayerData.prayers[p]?.athan;
+      if (t) {
+        const [h, m] = t.split(':').map(Number);
+        if (currentMin >= h * 60 + m) active = p;
+      }
+    }
+    return active;
+  };
+  const activePrayer = getActivePrayer();
 
   // Format data for PrayerTimeCard
   const displayPrayerTimes: PrayerTime[] = PRAYER_NAMES.map(name => {
@@ -157,9 +192,8 @@ export default function DashboardPage() {
     const time = p?.jamah || p?.athan || '—';
     const athanTime = p?.athan ? formatTime12h(p.athan) : '—';
 
-    // Determine active status (simplified logic for now)
-    // Real active logic requires checking current time vs prayer time intervals
-    const isActive = false;
+    // Determine active status
+    const isActive = activePrayer === name;
 
     return {
       name: PRAYER_LABELS[name],
@@ -171,28 +205,39 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      {/* Date Header */}
-      <DateHeader
-        gregorianDate={selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
-        islamicDate={daysPrayerData?.hijriDate || '—'}
-        onPrevDay={handlePrevDay}
-        onNextDay={handleNextDay}
-      />
+      {/* ── Date Section ── */}
+      <div className="flex flex-col gap-6 items-center w-full">
+        <DateHeader
+          gregorianDate={selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+          islamicDate={daysPrayerData?.hijriDate || '—'}
+          isToday={selectedDate.toDateString() === new Date().toDateString()}
+          onPrevDay={handlePrevDay}
+          onNextDay={handleNextDay}
+          onJumpToToday={handleJumpToToday}
+        />
 
-      {/* Prayer Times */}
-      <div className="flex justify-center flex-wrap gap-3">
-        {loading ? (
-          // Simple Loading Skeleton matching card size
-          Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="w-[180px] h-[140px] bg-white rounded-xl border border-gray-100 animate-pulse" />
-          ))
-        ) : daysPrayerData ? (
-          displayPrayerTimes.map((prayer) => (
-            <PrayerTimeCard key={prayer.name} prayer={prayer} />
-          ))
-        ) : (
-          <p className="text-gray-500 py-10">No prayer times found for this date.</p>
-        )}
+        {/* ─── Prayer Time Cards ─── */}
+        <div className="flex justify-center gap-[30px] items-stretch w-full overflow-x-auto pb-4">
+          {loading ? (
+            /* SKELETON LOADING STATE */
+            Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="flex flex-1 flex-col items-center justify-center gap-4 p-6 rounded-[12px] bg-white border border-[var(--border-01)] h-[180px] min-w-[160px]">
+                <Skeleton className="h-6 w-24" />
+                <div className="flex items-baseline gap-2">
+                  <Skeleton className="h-8 w-20" />
+                  <Skeleton className="h-5 w-8" />
+                </div>
+                <Skeleton className="h-4 w-32 mt-2" />
+              </div>
+            ))
+          ) : daysPrayerData ? (
+            displayPrayerTimes.map((prayer) => (
+              <PrayerTimeCard key={prayer.name} prayer={prayer} />
+            ))
+          ) : (
+            <p className="text-gray-500 py-10">No prayer times found for this date.</p>
+          )}
+        </div>
       </div>
 
       {/* Quick Actions */}

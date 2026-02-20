@@ -104,12 +104,22 @@ export default function UpdatePrayerTimeModal({ prayerTime, onClose, onSuccess }
         setJumuahTimes(prev => {
             const updated = [...prev];
             updated[index] = { ...updated[index], [field]: value };
+
+            // Jumuah Logic: If updating first Jumuah 'begins' time, sync to second Jumuah 'begins' (if exists)
+            if (index === 0 && field === 'begins' && updated.length > 1) {
+                updated[1] = { ...updated[1], begins: value };
+            }
+
             return updated;
         });
     };
 
     const addSecondJumuah = () => {
-        if (jumuahTimes.length < 2) setJumuahTimes(prev => [...prev, { ...EMPTY_JUMUAH }]);
+        if (jumuahTimes.length < 2) {
+            // Auto-fill 'begins' from first Jumuah
+            const firstBegins = jumuahTimes[0]?.begins || '';
+            setJumuahTimes(prev => [...prev, { ...EMPTY_JUMUAH, begins: firstBegins }]);
+        }
     };
 
     const removeSecondJumuah = () => {
@@ -406,7 +416,8 @@ export default function UpdatePrayerTimeModal({ prayerTime, onClose, onSuccess }
                                         <div className="w-[150px]">
                                             <TimePicker
                                                 value={jumuahTimes[1]?.begins || ''}
-                                                onChange={(val) => handleJumuahChange(1, 'begins', val)}
+                                                onChange={() => { }} // Read-only, changes sync from first
+                                                disabled={true}
                                                 placeholder="00:00"
                                             />
                                         </div>

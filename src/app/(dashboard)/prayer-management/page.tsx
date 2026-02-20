@@ -4,7 +4,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { getPrayerTimes, deletePrayerTime } from '@/lib/api/prayer-times';
 import UpdatePrayerTimeModal from '@/components/prayer-management/UpdatePrayerTimeModal';
 import Skeleton from '@/components/ui/Skeleton';
+import { ChevronRightIcon } from '@/components/ui/Icons';
+import DateHeader from '@/components/dashboard/DateHeader';
+import PrayerTimeCard from '@/components/dashboard/PrayerTimeCard';
 import type { PrayerTimeResponse, PrayersData } from '@/types/prayer-times';
+import type { PrayerTime } from '@/types';
 
 /* ── Constants ── */
 
@@ -66,83 +70,93 @@ function getDateParts(dateStr: string) {
     };
 }
 
-/* ── Shared arrow SVG (Figma: "Component 1") ── */
-
-function ChevronRight({ className = '' }: { className?: string }) {
-    return (
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className={className}>
-            <path d="M9 6L15 12L9 18" stroke="var(--brand)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-    );
-}
+/* ── Shared arrow SVG (Removed - using DateHeader) ── */
 
 /* ═══════════════════════════════════════════════════
    Main Page
    ═══════════════════════════════════════════════════ */
 
 export default function PrayerManagementPage() {
-    const [prayerTimes, setPrayerTimes] = useState<PrayerTimeResponse[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [monthlyPrayerTimes, setMonthlyPrayerTimes] = useState<PrayerTimeResponse[]>([]);
+    const [loadingMonthly, setLoadingMonthly] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [showModal, setShowModal] = useState(false);
     const [editingPrayerTime, setEditingPrayerTime] = useState<PrayerTimeResponse | null>(null);
 
+    // Monthly View State
     const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
     const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 
+    // Daily View State
     const [selectedDate, setSelectedDate] = useState(new Date());
+    const [dailyPrayerTime, setDailyPrayerTime] = useState<PrayerTimeResponse | null>(null);
+    const [loadingDaily, setLoadingDaily] = useState(true);
 
     /* ── Date Helpers ── */
     const formatDateKey = (date: Date) => {
         return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
     };
 
-    const selectedDateKey = formatDateKey(selectedDate);
-    const selectedPrayerTime = prayerTimes.find(pt => pt.date === selectedDateKey);
-
-    /* ── navigation handlers ── */
+    /* ── Daily Navigation (Independent) ── */
     const handlePrevDay = () => {
         const newDate = new Date(selectedDate);
         newDate.setDate(selectedDate.getDate() - 1);
         setSelectedDate(newDate);
-
-        // Sync month if needed
-        if (newDate.getMonth() !== currentMonth || newDate.getFullYear() !== currentYear) {
-            setCurrentMonth(newDate.getMonth());
-            setCurrentYear(newDate.getFullYear());
-        }
     };
 
     const handleNextDay = () => {
         const newDate = new Date(selectedDate);
         newDate.setDate(selectedDate.getDate() + 1);
         setSelectedDate(newDate);
-
-        // Sync month if needed
-        if (newDate.getMonth() !== currentMonth || newDate.getFullYear() !== currentYear) {
-            setCurrentMonth(newDate.getMonth());
-            setCurrentYear(newDate.getFullYear());
-        }
     };
 
-    /* ── data fetching ── */
-    const fetchPrayerTimes = useCallback(async () => {
-        setLoading(true);
+    /* ── Data Fetching: Monthly ── */
+    const fetchMonthlyPrayerTimes = useCallback(async () => {
+        setLoadingMonthly(true);
         setError(null);
         try {
             const startDate = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-01`;
             const lastDay = new Date(currentYear, currentMonth + 1, 0).getDate();
             const endDate = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
             const result = await getPrayerTimes({ startDate, endDate, size: 31 });
-            setPrayerTimes(result.content);
+            setMonthlyPrayerTimes(result.content);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to load prayer times');
         } finally {
-            setLoading(false);
+            setLoadingMonthly(false);
         }
     }, [currentMonth, currentYear]);
 
-    useEffect(() => { fetchPrayerTimes(); }, [fetchPrayerTimes]);
+    useEffect(() => { fetchMonthlyPrayerTimes(); }, [fetchMonthlyPrayerTimes]);
+
+    /* ── Data Fetching: Daily (Smart Sync) ── */
+    useEffect(() => {
+        const fetchDaily = async () => {
+            setLoadingDaily(true);
+            const dateKey = formatDateKey(selectedDate);
+
+            // 1. Try to find in current monthly data
+            const foundInMonth = monthlyPrayerTimes.find(pt => pt.date === dateKey);
+            if (foundInMonth) {
+                setDailyPrayerTime(foundInMonth);
+                setLoadingDaily(false);
+                return;
+            }
+
+            // 2. If not found (different month), fetch specifically
+            try {
+                const result = await getPrayerTimes({ startDate: dateKey, endDate: dateKey });
+                setDailyPrayerTime(result.content[0] || null);
+            } catch (err) {
+                console.error("Failed to fetch daily prayer time", err);
+                setDailyPrayerTime(null);
+            } finally {
+                setLoadingDaily(false);
+            }
+        };
+
+        fetchDaily();
+    }, [selectedDate, monthlyPrayerTimes]);
 
     /* ── navigation ── */
     const handlePrevMonth = () => {
@@ -157,18 +171,17 @@ export default function PrayerManagementPage() {
     /* ── actions ── */
     const handleDelete = async (id: string) => {
         if (!confirm('Are you sure you want to delete this prayer time entry?')) return;
-        try { await deletePrayerTime(id); fetchPrayerTimes(); }
+        try { await deletePrayerTime(id); fetchMonthlyPrayerTimes(); }
         catch { alert('Failed to delete prayer time'); }
     };
     const handleEdit = (pt: PrayerTimeResponse) => { setEditingPrayerTime(pt); setShowModal(true); };
     const handleAddNew = () => { setEditingPrayerTime(null); setShowModal(true); };
     const handleModalClose = () => { setShowModal(false); setEditingPrayerTime(null); };
-    const handleModalSuccess = () => { handleModalClose(); fetchPrayerTimes(); };
+    const handleModalSuccess = () => { handleModalClose(); fetchMonthlyPrayerTimes(); };
 
     /* ── determine active prayer ── */
-    /* ── determine active prayer ── */
     const getActivePrayer = (): keyof PrayersData | null => {
-        if (!selectedPrayerTime) return null;
+        if (!dailyPrayerTime) return null;
         const now = new Date();
         // Only highlight if selected date is today
         const isToday = selectedDate.toDateString() === now.toDateString();
@@ -178,7 +191,7 @@ export default function PrayerManagementPage() {
         const order: (keyof PrayersData)[] = ['fajr', 'sunrise', 'zuhr', 'asr', 'maghrib', 'isha'];
         let active: keyof PrayersData | null = null;
         for (const p of order) {
-            const t = selectedPrayerTime.prayers[p]?.jamah || selectedPrayerTime.prayers[p]?.athan;
+            const t = dailyPrayerTime.prayers[p]?.jamah || dailyPrayerTime.prayers[p]?.athan;
             if (t) {
                 const [h, m] = t.split(':').map(Number);
                 if (currentMin >= h * 60 + m) active = p;
@@ -189,8 +202,8 @@ export default function PrayerManagementPage() {
     const activePrayer = getActivePrayer();
 
     /* ── hijri range for month header ── */
-    const firstHijri = prayerTimes.length > 0 ? prayerTimes[0]?.hijriDate : null;
-    const lastHijri = prayerTimes.length > 1 ? prayerTimes[prayerTimes.length - 1]?.hijriDate : null;
+    const firstHijri = monthlyPrayerTimes.length > 0 ? monthlyPrayerTimes[0]?.hijriDate : null;
+    const lastHijri = monthlyPrayerTimes.length > 1 ? monthlyPrayerTimes[monthlyPrayerTimes.length - 1]?.hijriDate : null;
     const hijriRange = firstHijri && lastHijri && firstHijri !== lastHijri
         ? `${firstHijri} - ${lastHijri}`
         : firstHijri || '';
@@ -225,116 +238,48 @@ export default function PrayerManagementPage() {
                 </button>
             </div>
 
-            {/* ─────────────── Date Section ─────────────── */}
+            {/* ── Date Section ── */}
             <div className="flex flex-col gap-6 items-center w-full">
-
-                {/* Date Banner */}
-                <div className="flex items-center justify-between w-full bg-[var(--brand-05)] px-4 py-1.5">
-                    {/* Previous allow */}
-                    <button
-                        onClick={handlePrevDay}
-                        className="border border-[var(--brand-50)] rounded-[8px] p-1.5 flex items-center justify-center hover:bg-white/50 transition-colors cursor-pointer"
-                    >
-                        <ChevronRight className="rotate-180" />
-                    </button>
-
-                    {/* Center date text */}
-                    <div className="flex flex-col items-center gap-0.5">
-                        <p className="font-urbanist font-semibold text-[24px] text-[var(--grey-800)] leading-normal">
-                            {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
-                        </p>
-                        {selectedPrayerTime?.hijriDate && (
-                            <p className="font-urbanist font-semibold text-[20px] text-[var(--brand)] leading-normal">
-                                {selectedPrayerTime.hijriDate}
-                            </p>
-                        )}
-                        {!selectedPrayerTime && !loading && (
-                            <p className="font-urbanist font-semibold text-[16px] text-[var(--neutral-500)] leading-normal">
-                                No data for this date
-                            </p>
-                        )}
-                    </div>
-
-                    {/* Next arrow */}
-                    <button
-                        onClick={handleNextDay}
-                        className="border border-[var(--brand-50)] rounded-[8px] p-1.5 flex items-center justify-center hover:bg-white/50 transition-colors cursor-pointer"
-                    >
-                        <ChevronRight />
-                    </button>
-                </div>
+                <DateHeader
+                    gregorianDate={selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                    islamicDate={dailyPrayerTime?.hijriDate || ''}
+                    isToday={selectedDate.toDateString() === new Date().toDateString()}
+                    onPrevDay={handlePrevDay}
+                    onNextDay={handleNextDay}
+                    onJumpToToday={() => setSelectedDate(new Date())}
+                />
 
                 {/* ─── Prayer Time Cards ─── */}
-                <div className="flex gap-[30px] items-stretch w-full">
-                    {loading ? (
-                        /* SKELETON LOADING STATE for Cards */
+                <div className="flex justify-center gap-[30px] items-stretch w-full overflow-x-auto pb-4">
+                    {loadingDaily ? (
+                        /* SKELETON LOADING STATE */
                         Array.from({ length: 6 }).map((_, i) => (
-                            <div key={i} className="flex flex-1 flex-col items-center justify-center gap-4 p-6 rounded-[12px] bg-white border border-[var(--border-01)] h-[180px]">
-                                <Skeleton className="h-6 w-24" /> {/* Title */}
+                            <div key={i} className="flex flex-1 flex-col items-center justify-center gap-4 p-6 rounded-[12px] bg-white border border-[var(--border-01)] h-[180px] min-w-[160px]">
+                                <Skeleton className="h-6 w-24" />
                                 <div className="flex items-baseline gap-2">
-                                    <Skeleton className="h-8 w-20" /> {/* Time */}
-                                    <Skeleton className="h-5 w-8" />  {/* AM/PM */}
+                                    <Skeleton className="h-8 w-20" />
+                                    <Skeleton className="h-5 w-8" />
                                 </div>
-                                <Skeleton className="h-4 w-32 mt-2" /> {/* Subtitle */}
+                                <Skeleton className="h-4 w-32 mt-2" />
                             </div>
                         ))
                     ) : (
                         PRAYER_NAMES.map((prayer) => {
                             const isActive = activePrayer === prayer;
-                            const data = selectedPrayerTime?.prayers?.[prayer];
-                            const isSunrise = prayer === 'sunrise';
+                            const data = dailyPrayerTime?.prayers?.[prayer];
 
-                            /* Time parts for the main jamah/athan time */
-                            const mainTime = data?.jamah || data?.athan;
-                            const mainParts = formatTimeParts(mainTime);
+                            const jamah = formatTime12h(data?.jamah);
+                            const athan = formatTime12h(data?.athan);
 
-                            /* Athan parts */
-                            const athanParts = formatTimeParts(data?.athan);
+                            // Map to PrayerTime interface for the Card
+                            const cardData = {
+                                name: PRAYER_LABELS[prayer],
+                                time: jamah !== '—' ? jamah : athan, // Fallback to athan if no jamah
+                                athanTime: prayer === 'sunrise' ? '' : athan,
+                                isActive: isActive
+                            };
 
-                            return (
-                                <div
-                                    key={prayer}
-                                    className={`
-                                        flex flex-1 flex-col items-center justify-center gap-2
-                                        p-6 rounded-[12px] transition-all duration-200
-                                        ${isActive
-                                            ? 'bg-[var(--brand)] text-white'
-                                            : 'bg-[var(--brand-05)]'
-                                        }
-                                    `}
-                                >
-                                    {/* Prayer name */}
-                                    <p className={`font-urbanist font-medium text-[22px] uppercase tracking-[-0.14px] leading-normal ${isActive ? 'text-white' : 'text-[var(--brand)]'}`}>
-                                        {PRAYER_LABELS[prayer]}
-                                    </p>
-
-                                    {/* Main time: e.g. 6:30 PM */}
-                                    <div className="flex items-baseline gap-1.5 justify-center">
-                                        <p className={`font-inter font-bold text-[26px] leading-normal ${isActive ? 'text-white' : 'text-[var(--grey-800)]'}`}>
-                                            {mainParts ? mainParts.time : '—'}
-                                        </p>
-                                        {mainParts && (
-                                            <p className={`font-inter font-bold text-[18px] uppercase leading-normal ${isActive ? 'text-white' : 'text-[#666d80]'}`}>
-                                                {mainParts.ampm}
-                                            </p>
-                                        )}
-                                    </div>
-
-                                    {/* Athan time with superscript AM/PM */}
-                                    {!isSunrise && (
-                                        <p className={`font-urbanist font-medium uppercase text-center leading-none ${isActive ? 'text-white' : 'text-[#666d80]'}`}>
-                                            {athanParts ? (
-                                                <>
-                                                    <span className="text-[20px]">Athan {athanParts.time}</span>
-                                                    <span className="text-[12.9px] align-super">{athanParts.ampm}</span>
-                                                </>
-                                            ) : (
-                                                <span className="text-[20px]">—</span>
-                                            )}
-                                        </p>
-                                    )}
-                                </div>
-                            );
+                            return <PrayerTimeCard key={prayer} prayer={cardData} />;
                         })
                     )}
                 </div>
@@ -360,19 +305,19 @@ export default function PrayerManagementPage() {
                             onClick={handlePrevMonth}
                             className="border border-[var(--brand-50)] rounded-[8px] p-1.5 flex items-center justify-center hover:bg-[var(--brand-05)] transition-colors cursor-pointer"
                         >
-                            <ChevronRight className="rotate-180" />
+                            <ChevronRightIcon className="rotate-180" size={20} />
                         </button>
                         <button
                             onClick={handleNextMonth}
                             className="border border-[var(--brand-50)] rounded-[8px] p-1.5 flex items-center justify-center hover:bg-[var(--brand-05)] transition-colors cursor-pointer"
                         >
-                            <ChevronRight />
+                            <ChevronRightIcon size={20} />
                         </button>
                     </div>
                 </div>
 
                 {/* ── Table Content ── */}
-                {loading ? (
+                {loadingMonthly ? (
                     <div className="w-full overflow-x-auto">
                         <table className="w-full border-collapse min-w-[1000px]">
                             <thead>
@@ -420,9 +365,9 @@ export default function PrayerManagementPage() {
                 ) : error ? (
                     <div className="text-center py-20">
                         <p className="font-urbanist text-[var(--error)] text-[16px]">{error}</p>
-                        <button onClick={fetchPrayerTimes} className="mt-4 px-6 py-2.5 bg-[var(--brand)] text-white rounded-[12px] font-inter font-medium text-[16px] cursor-pointer">Retry</button>
+                        <button onClick={fetchMonthlyPrayerTimes} className="mt-4 px-6 py-2.5 bg-[var(--brand)] text-white rounded-[12px] font-inter font-medium text-[16px] cursor-pointer">Retry</button>
                     </div>
-                ) : prayerTimes.length === 0 ? (
+                ) : monthlyPrayerTimes.length === 0 ? (
                     <div className="text-center py-20">
                         <p className="font-urbanist text-[var(--neutral-500)] text-[16px]">
                             No prayer times found for {MONTHS[currentMonth]} {currentYear}
@@ -483,9 +428,9 @@ export default function PrayerManagementPage() {
 
                             {/* ── Table Body ── */}
                             <tbody>
-                                {prayerTimes.map((pt) => {
+                                {monthlyPrayerTimes.map((pt) => {
                                     const { dayFull, dayNum, isFriday, monthShort } = getDateParts(pt.date);
-                                    const isSelected = pt.date === selectedDateKey;
+                                    const isSelected = pt.date === formatDateKey(selectedDate);
                                     const now = new Date();
                                     const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
                                     const isToday = pt.date === todayKey;
@@ -544,7 +489,7 @@ export default function PrayerManagementPage() {
                                                                         <span className="font-urbanist font-medium text-[10px] text-[#666d80] uppercase">
                                                                             Jummah {idx + 1}
                                                                         </span>
-                                                                        <span className="font-urbanist font-medium text-[12px] text-[var(--brand)]">
+                                                                        <span className="font-urbanist font-semibold text-[12px] text-[var(--brand)]">
                                                                             {formatTime12h(jt.jamah)}
                                                                         </span>
                                                                     </div>
@@ -560,7 +505,7 @@ export default function PrayerManagementPage() {
                                                         <td className="text-center px-4 py-3 font-urbanist font-medium text-[14px] text-[#666d80] border-r border-[var(--border-01)]">
                                                             {formatTime12h(pData?.athan)}
                                                         </td>
-                                                        <td className="text-center px-4 py-3 font-urbanist font-medium text-[14px] text-[var(--brand)] border-r border-[var(--border-01)] last:border-r-0">
+                                                        <td className="text-center px-4 py-3 font-urbanist font-semibold text-[14px] text-[var(--brand)] border-r border-[var(--border-01)] last:border-r-0">
                                                             {formatTime12h(pData?.jamah)}
                                                         </td>
                                                     </React.Fragment>
