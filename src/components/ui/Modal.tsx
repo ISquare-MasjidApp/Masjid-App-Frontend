@@ -46,7 +46,7 @@ export default function Modal({ isOpen, onClose, children, className = '' }: Mod
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200"
         >
             <div
-                className={`bg-white rounded-[24px] shadow-xl w-full max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200 ${className}`}
+                className={`bg-white rounded-[24px] shadow-xl w-full max-h-[90vh] overflow-y-auto scrollbar-hide animate-in zoom-in-95 duration-200 ${className}`}
                 role="dialog"
                 aria-modal="true"
             >

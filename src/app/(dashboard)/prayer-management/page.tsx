@@ -218,7 +218,7 @@ export default function PrayerManagementPage() {
         <div className="flex flex-col gap-6">
 
             {/* ─────────────── Page Header ─────────────── */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <h1 className="font-urbanist font-bold text-[28px] text-[#1f1f1f] leading-normal">
                     Prayer Management
                 </h1>
@@ -250,7 +250,7 @@ export default function PrayerManagementPage() {
                 />
 
                 {/* ─── Prayer Time Cards ─── */}
-                <div className="flex justify-center gap-[30px] items-stretch w-full overflow-x-auto pb-4">
+                <div className="flex justify-start md:justify-center gap-4 md:gap-[30px] items-stretch w-full overflow-x-auto scrollbar-hide pb-4 px-1">
                     {loadingDaily ? (
                         /* SKELETON LOADING STATE */
                         Array.from({ length: 6 }).map((_, i) => (
@@ -318,7 +318,7 @@ export default function PrayerManagementPage() {
 
                 {/* ── Table Content ── */}
                 {loadingMonthly ? (
-                    <div className="w-full overflow-x-auto">
+                    <div className="w-full overflow-x-auto scrollbar-hide">
                         <table className="w-full border-collapse min-w-[1000px]">
                             <thead>
                                 <tr className="border-t border-[var(--border-01)]">
@@ -375,7 +375,7 @@ export default function PrayerManagementPage() {
                         <button onClick={handleAddNew} className="mt-4 px-6 py-2.5 bg-[var(--brand)] text-white rounded-[12px] font-inter font-medium text-[16px] cursor-pointer">Add Prayer Times</button>
                     </div>
                 ) : (
-                    <div className="w-full overflow-x-auto">
+                    <div className="w-full overflow-x-auto scrollbar-hide">
                         <table className="w-full border-collapse min-w-[1000px]">
                             {/* ── Table Header ── */}
                             <thead>
@@ -417,7 +417,7 @@ export default function PrayerManagementPage() {
                                                 <th className="bg-[var(--table-white)] text-center px-4 py-2 font-urbanist font-medium text-[12px] text-[#667085] uppercase border-r border-[var(--border-01)]">
                                                     Begins
                                                 </th>
-                                                <th className="bg-[var(--table-white)] text-center px-4 py-2 font-urbanist font-medium text-[12px] text-[var(--brand)] uppercase border-r border-[var(--border-01)] last:border-r-0">
+                                                <th className="bg-[var(--table-white)] text-center px-4 py-2 font-urbanist font-semibold text-[12px] text-[var(--brand)] uppercase border-r border-[var(--border-01)] last:border-r-0">
                                                     Jama&apos;ah
                                                 </th>
                                             </React.Fragment>

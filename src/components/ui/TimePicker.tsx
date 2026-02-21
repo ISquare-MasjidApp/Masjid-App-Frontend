@@ -79,7 +79,6 @@ export default function TimePicker({ value, onChange, placeholder = "--:--", dis
 
         if (!match) {
             setError(true);
-            // Don't revert immediately so user can fix it, but don't call onChange
             return;
         }
 
@@ -87,33 +86,84 @@ export default function TimePicker({ value, onChange, placeholder = "--:--", dis
         let hour = parseInt(hourStr, 10);
         const min = parseInt(minStr, 10);
 
-        if (hour < 0 || hour > 23 || min < 0 || min > 59) {
+        if (hour < 0 || hour > 23 || min < 0 || min > 59 || (period && hour === 0)) {
             setError(true);
             return;
         }
 
-        // Normalize to 24h for storage
         let periodNorm = period ? period.toUpperCase() : null;
 
-        // If no period provided, assume 24h input unless specific logic needed.
-        // Or, strict mode: if valid 24h (e.g. 13:00), use it. If ambiguous (5:00), default to AM or keep logic simple.
-        // Let's assume standard behavior:
-
         if (periodNorm) {
-            // 12h format provided
             if (periodNorm === 'PM' && hour < 12) hour += 12;
             if (periodNorm === 'PM' && hour === 12) hour = 12;
             if (periodNorm === 'AM' && hour === 12) hour = 0;
         } else {
-            // Treat as 24h but handle 12h-like inputs (logic: if < 12, ambiguous? assume AM? No, standard 24h)
+            // Treat as 24h if no period provided, but handle 12h-like inputs seamlessly
+            // If they just typed "05:30" we assume they meant 24h format (so 5:30 AM). If "17:30", it's 5:30 PM.
         }
 
         const h24 = hour.toString().padStart(2, '0');
         const m24 = min.toString().padStart(2, '0');
 
-        // Update parent
         onChange(`${h24}:${m24}`);
-        setInputValue(formatDisplayValue(`${h24}:${m24}`)); // Reformat to 12h standard for display
+        setInputValue(formatDisplayValue(`${h24}:${m24}`));
+        setError(false);
+    };
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        let val = e.target.value;
+        const isDeleting = val.length < inputValue.length;
+
+        // Auto-detect typed period character from the new input value
+        let currentPeriod = p || 'AM';
+        if (val.toLowerCase().includes('a')) currentPeriod = 'AM';
+        else if (val.toLowerCase().includes('p')) currentPeriod = 'PM';
+
+        let digits = val.replace(/[^\d]/g, '').slice(0, 4);
+
+        if (isDeleting) {
+            setInputValue(val);
+            setError(false);
+            return;
+        }
+
+        let formatted = '';
+
+        if (digits.length > 0) {
+            let hStr = digits.substring(0, 2);
+            if (hStr.length === 2) {
+                let hVal = parseInt(hStr, 10);
+                if (hVal > 12) hStr = '12';
+                if (hVal === 0) hStr = '01';
+                formatted += hStr;
+            } else {
+                let hVal = parseInt(hStr, 10);
+                if (hVal > 1) {
+                    formatted += `0${hVal}`;
+                } else {
+                    formatted += hStr;
+                }
+            }
+        }
+
+        if (formatted.length === 2 && digits.length >= 2) {
+            formatted += ':';
+        }
+
+        if (digits.length > 2) {
+            let mStr = digits.substring(2, 4);
+            if (mStr.length === 2) {
+                let mVal = parseInt(mStr, 10);
+                if (mVal > 59) mStr = '59';
+            }
+            formatted += mStr;
+        }
+
+        if (formatted.length === 5) {
+            formatted += ` ${currentPeriod}`;
+        }
+
+        setInputValue(formatted);
         setError(false);
     };
 
@@ -153,7 +203,7 @@ export default function TimePicker({ value, onChange, placeholder = "--:--", dis
 
         const timeString = `${hours24.toString().padStart(2, '0')}:${newM}`;
         onChange(timeString);
-        // Display value will update via useEffect when value prop changes
+        setInputValue(`${newH}:${newM} ${newP}`);
     };
 
     return (
@@ -162,10 +212,7 @@ export default function TimePicker({ value, onChange, placeholder = "--:--", dis
                 <input
                     type="text"
                     value={inputValue}
-                    onChange={(e) => {
-                        setInputValue(e.target.value);
-                        setError(false); // Clear error while typing
-                    }}
+                    onChange={handleInputChange}
                     onFocus={() => setIsOpen(true)}
                     onBlur={handleBlur}
                     onKeyDown={handleKeyDown}

@@ -58,15 +58,22 @@
   --color-error: var(--error);
   --color-background: var(--background);
   --color-table-white: var(--table-white);
-  
+
   --font-urbanist: 'Urbanist', sans-serif;
   --font-dm-sans: 'DM Sans', sans-serif;
   --font-inter: 'Inter', sans-serif;
   --font-volkhov: 'Volkhov', serif;
-  
+
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
+}
+
+html {
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE/Edge */
 }
 
 body {
@@ -75,6 +82,11 @@ body {
   font-family: 'Urbanist', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+body::-webkit-scrollbar {
+  display: none;
+  /* Chrome/Safari/Webkit */
 }
 
 /* Utility classes for fonts */
@@ -92,4 +104,14 @@ body {
 
 .font-volkhov {
   font-family: 'Volkhov', serif;
+}
+
+/* Scrollbar Hide Utility */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

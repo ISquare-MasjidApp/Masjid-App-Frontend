@@ -32,8 +32,8 @@ export default function DateHeader({
 
       {/* Date Display */}
       <div className="flex flex-col items-center justify-center gap-[2px]">
-        <div className="flex items-start justify-center gap-[4px]">
-          <h2 className="font-urbanist font-semibold text-[20px] text-[var(--grey-800)] leading-none">
+        <div className="flex flex-col sm:flex-row items-center sm:items-start justify-center gap-[4px] text-center sm:text-left">
+          <h2 className="font-urbanist font-semibold text-[16px] sm:text-[20px] text-[var(--grey-800)] leading-tight sm:leading-none">
             {gregorianDate}
           </h2>
           <button

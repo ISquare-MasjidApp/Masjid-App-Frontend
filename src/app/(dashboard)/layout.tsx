@@ -22,7 +22,7 @@ export default function DashboardLayout({
   return (
     <div className="min-h-screen bg-[var(--main-bg)]">
       <Header activeNav={activeNav} />
-      <main className="max-w-[1440px] mx-auto px-[60px] py-8">{children}</main>
+      <main className="max-w-[1440px] mx-auto px-4 lg:px-[60px] py-8">{children}</main>
     </div>
   );
 }

@@ -246,7 +246,7 @@ export default function UpdatePrayerTimeModal({ prayerTime, onClose, onSuccess }
                         </label>
                         <button
                             onClick={() => !isEditing && setShowDatePicker(true)}
-                            className={`flex items-center justify-between w-full max-w-[580px] px-5 py-3 border border-[var(--border-01)] rounded-full
+                            className={`flex items-center justify-between w-full max-w-[580px] p-[12px] border border-[var(--border-01)] rounded-full
                                 font-urbanist text-[15px] text-[var(--grey-800)] transition-colors
                                 ${isEditing ? 'bg-[var(--neutral-100)] cursor-default' : 'bg-white hover:border-[var(--brand)] cursor-pointer'}`}
                         >
