@@ -217,7 +217,7 @@ export default function DashboardPage() {
         />
 
         {/* ─── Prayer Time Cards ─── */}
-        <div className="flex justify-center gap-[30px] items-stretch w-full overflow-x-auto pb-4">
+        <div className="flex justify-start md:justify-center gap-4 md:gap-[30px] items-stretch w-full overflow-x-auto scrollbar-hide pb-4 px-1">
           {loading ? (
             /* SKELETON LOADING STATE */
             Array.from({ length: 6 }).map((_, i) => (
@@ -241,7 +241,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <QuickActionButton label="Add Event" onClick={() => console.log('Add Event')} />
         <QuickActionButton
           label="Add Announcement"
@@ -259,7 +259,7 @@ export default function DashboardPage() {
         <h2 className="font-urbanist font-semibold text-[20px] text-[var(--grey-800)] mb-4">
           Upcoming Events
         </h2>
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {upcomingEvents.map((event) => (
             <EventCard key={event.id} event={event} />
           ))}
@@ -271,7 +271,7 @@ export default function DashboardPage() {
         <h2 className="font-urbanist font-semibold text-[20px] text-[var(--grey-800)] mb-4">
           Active Campaigns
         </h2>
-        <div className="grid grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {activeCampaigns.map((campaign) => (
             <CampaignCard key={campaign.id} campaign={campaign} />
           ))}

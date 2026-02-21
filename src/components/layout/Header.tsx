@@ -25,7 +25,7 @@ const NavItem = ({ label, href, icon, isActive = false }: NavItemProps) => (
   <Link
     href={href}
     className={`
-      flex items-center gap-2 px-4 py-3 rounded-[12px] transition-colors
+      flex items-center gap-2 px-4 py-3 rounded-[12px] transition-colors shrink-0
       ${isActive
         ? 'bg-[var(--brand-10)] text-[var(--brand)]'
         : 'text-[var(--grey-800)] hover:bg-[var(--neutral-100)]'
@@ -33,7 +33,7 @@ const NavItem = ({ label, href, icon, isActive = false }: NavItemProps) => (
     `}
   >
     <span className={isActive ? 'text-[var(--brand)]' : 'text-[var(--grey-800)]'}>{icon}</span>
-    <span className={`font-urbanist text-[14px] ${isActive ? 'font-semibold' : 'font-medium'}`}>
+    <span className={`font-urbanist text-[14px] whitespace-nowrap ${isActive ? 'font-semibold' : 'font-medium'}`}>
       {label}
     </span>
   </Link>
@@ -102,9 +102,9 @@ export default function Header({ activeNav = 'dashboard' }: HeaderProps) {
 
   return (
     <header className="w-full bg-white shadow-[0_4px_21px_rgba(0,0,0,0.1)]">
-      <div className="max-w-[1440px] mx-auto px-[60px] py-4 flex items-center justify-between h-[100px]">
+      <div className="max-w-[1440px] mx-auto px-4 lg:px-[60px] py-4 flex items-center justify-between h-[100px] gap-4">
         {/* Logo */}
-        <Link href="/dashboard" className="relative w-[68px] h-[68px]">
+        <Link href="/dashboard" className="relative w-[68px] h-[68px] shrink-0">
           <Image
             src="/images/nwk-logo.png"
             alt="NWK Muslim Association"
@@ -114,7 +114,7 @@ export default function Header({ activeNav = 'dashboard' }: HeaderProps) {
         </Link>
 
         {/* Navigation */}
-        <nav className="flex items-center gap-2">
+        <nav className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-2 lg:pb-0 flex-1 lg:flex-none">
           {navItems.map((item) => (
             <NavItem key={item.href} {...item} />
           ))}
