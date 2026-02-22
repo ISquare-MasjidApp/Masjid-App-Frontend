@@ -69,7 +69,8 @@
   --radius-lg: 16px;
 }
 
-html {
+html,
+body {
   scrollbar-width: none;
   /* Firefox */
   -ms-overflow-style: none;
@@ -84,9 +85,9 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-body::-webkit-scrollbar {
+/* Hide scrollbar for Chrome, Safari and Opera globally */
+::-webkit-scrollbar {
   display: none;
-  /* Chrome/Safari/Webkit */
 }
 
 /* Utility classes for fonts */
