@@ -26,6 +26,9 @@ export interface Announcement {
   title: string;
   date: string;
   description: string;
+  message?: string;
+  time?: string;
+  status?: 'sent' | 'scheduled';
 }
 
 // Campaign Types

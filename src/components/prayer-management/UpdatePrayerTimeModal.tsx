@@ -216,7 +216,7 @@ export default function UpdatePrayerTimeModal({ prayerTime, onClose, onSuccess }
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
             {/* Backdrop */}
-            <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
 
             {/* Modal Panel — Figma: p-[24px] gap-[24px] rounded-[24px] border */}
             <div className="relative bg-white rounded-[24px] w-full max-w-[1020px] shadow-2xl border border-[var(--border-01)] p-[24px] flex flex-col gap-[24px]" style={{ overflow: 'visible' }}>

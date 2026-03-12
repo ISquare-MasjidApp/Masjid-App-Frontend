@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Modal from '@/components/ui/Modal';
-import { CloseIcon, ChevronDownIcon, CalendarIcon, UploadIcon } from '@/components/ui/Icons';
+import { CloseIcon, CalendarIcon, UploadIcon } from '@/components/ui/Icons';
+import TimePicker from '@/components/ui/TimePicker';
 import type { Event } from '@/types';
 
 interface AddEventModalProps {
@@ -11,17 +12,31 @@ interface AddEventModalProps {
     event?: Event | null; // If provided, we are in Edit mode
 }
 
+/* ── Helper: parse "10:30 AM" → "10:30" (24h) ── */
+function parseTime12to24(t: string): string {
+    if (!t) return '';
+    const match = t.trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+    if (!match) return '';
+    let h = parseInt(match[1], 10);
+    const m = match[2];
+    const p = match[3].toUpperCase();
+    if (p === 'PM' && h < 12) h += 12;
+    if (p === 'AM' && h === 12) h = 0;
+    return `${h.toString().padStart(2, '0')}:${m}`;
+}
+
 export default function AddEventModal({ isOpen, onClose, event }: AddEventModalProps) {
     const isEditMode = !!event;
 
     // Form State
     const [title, setTitle] = useState('');
     const [speaker, setSpeaker] = useState('');
-    const [date, setDate] = useState('');
-    const [time, setTime] = useState('');
+    const [venue, setVenue] = useState('');
     const [description, setDescription] = useState('');
+    const [eventDate, setEventDate] = useState('');
+    const [startTime, setStartTime] = useState('');
+    const [endTime, setEndTime] = useState('');
     const [link, setLink] = useState('');
-    const [venue, setVenue] = useState('Masjid Abu Bakar'); // Default as per design
     const [imageName, setImageName] = useState('');
 
     // Reset or Populate form when modal opens/event changes
@@ -30,156 +45,195 @@ export default function AddEventModal({ isOpen, onClose, event }: AddEventModalP
             if (event) {
                 setTitle(event.title);
                 setSpeaker(event.speaker || '');
-                // Parse date/time from event.date/startTime if needed
-                // For now just setting placeholders or existing values
-                setDate('2025-10-17');
-                setTime(event.startTime);
-                setDescription(event.description || '');
-                setLink('');
                 setVenue(event.location || 'Masjid Abu Bakar');
-                setImageName('');
+                setDescription(event.description || '');
+                // Parse date: "17 Oct 2025" → "2025-10-17"
+                try {
+                    const d = new Date(event.date);
+                    if (!isNaN(d.getTime())) {
+                        setEventDate(d.toISOString().split('T')[0]);
+                    } else {
+                        setEventDate('');
+                    }
+                } catch {
+                    setEventDate('');
+                }
+                setStartTime(parseTime12to24(event.startTime || ''));
+                setEndTime(parseTime12to24(event.endTime || ''));
+                setLink('');
+                setImageName('Img.png');
             } else {
-                // Reset
                 setTitle('');
                 setSpeaker('');
-                setDate('');
-                setTime('');
+                setVenue('');
                 setDescription('');
+                setEventDate('');
+                setStartTime('');
+                setEndTime('');
                 setLink('');
-                setVenue('Masjid Abu Bakar');
                 setImageName('');
             }
         }
     }, [isOpen, event]);
 
-    const handleSave = () => {
-        // Logic to save event
-        console.log('Saving event:', { title, speaker, date, time, description, link, venue });
+    const handleSave = (asDraft?: boolean) => {
+        console.log('Saving event:', { title, speaker, venue, description, eventDate, startTime, endTime, link, asDraft });
         onClose();
     };
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} className="max-w-[800px] p-0 overflow-hidden">
-            <div className="p-6 space-y-6">
+        <Modal isOpen={isOpen} onClose={onClose} className="max-w-[800px] p-0">
+            <div className="bg-white rounded-[24px] p-[24px] flex flex-col gap-[24px] max-h-[90vh] overflow-y-auto">
                 {/* Header */}
                 <div className="flex justify-between items-start">
-                    <h2 className="text-[24px] font-bold font-inter text-[var(--grey-800)]">
+                    <h2 className="font-urbanist font-bold text-[24px] text-[var(--grey-800)] leading-normal">
                         {isEditMode ? 'Update Event Information' : 'Add New Event'}
                     </h2>
-                    <button onClick={onClose} className="p-2 bg-[rgba(7,119,52,0.1)] rounded-[8px] hover:bg-[rgba(7,119,52,0.2)] transition-colors">
-                        <CloseIcon size={20} className="text-[var(--brand)]" />
+                    <button
+                        onClick={onClose}
+                        className="w-[36px] h-[36px] flex items-center justify-center bg-[rgba(7,119,52,0.1)] rounded-[8px] hover:bg-[rgba(7,119,52,0.2)] transition-colors shrink-0"
+                    >
+                        <CloseIcon size={24} className="text-[var(--grey-800)]" />
                     </button>
                 </div>
 
-                {/* Form Fields */}
-                <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2">
-                    {/* Event Title */}
-                    <div className="space-y-2">
-                        <label className="block text-[16px] font-semibold font-inter text-[#4b4b4b] tracking-[0.16px]">
-                            Event Title
+                {/* Event Title */}
+                <div className="flex flex-col gap-[8px]">
+                    <label className="font-urbanist font-semibold text-[16px] text-[var(--grey-800)] tracking-[0.16px] leading-none">
+                        Event Title
+                    </label>
+                    <input
+                        type="text"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        placeholder="Title"
+                        className="w-full h-[48px] px-[21px] border border-[var(--border-01)] rounded-[12px] font-urbanist font-normal text-[16px] text-[var(--grey-800)] placeholder:text-[#666d80] focus:outline-none focus:ring-1 focus:ring-[var(--brand)]"
+                    />
+                </div>
+
+                {/* Speaker & Venue Row */}
+                <div className="flex gap-[24px]">
+                    {/* Speaker */}
+                    <div className="flex-1 flex flex-col gap-[8px]">
+                        <label className="font-urbanist font-semibold text-[16px] text-[var(--grey-800)] tracking-[0.16px] leading-none">
+                            Speaker
+                        </label>
+                        <input
+                            type="text"
+                            value={speaker}
+                            onChange={(e) => setSpeaker(e.target.value)}
+                            placeholder="Speaker"
+                            className="w-full h-[48px] px-[21px] border border-[var(--border-01)] rounded-[12px] font-urbanist font-normal text-[16px] text-[var(--grey-800)] placeholder:text-[#666d80] focus:outline-none focus:ring-1 focus:ring-[var(--brand)]"
+                        />
+                    </div>
+                    {/* Venue */}
+                    <div className="flex-1 flex flex-col gap-[8px]">
+                        <label className="font-urbanist font-semibold text-[16px] text-[var(--grey-800)] tracking-[0.16px] leading-none">
+                            Venue
+                        </label>
+                        <input
+                            type="text"
+                            value={venue}
+                            onChange={(e) => setVenue(e.target.value)}
+                            placeholder="Link"
+                            className="w-full h-[48px] px-[21px] border border-[var(--border-01)] rounded-[12px] font-urbanist font-normal text-[16px] text-[var(--grey-800)] placeholder:text-[#666d80] focus:outline-none focus:ring-1 focus:ring-[var(--brand)]"
+                        />
+                    </div>
+                </div>
+
+                {/* Description */}
+                <div className="flex flex-col gap-[8px]">
+                    <label className="font-urbanist font-semibold text-[16px] text-[var(--grey-800)] tracking-[0.16px] leading-none">
+                        Description
+                    </label>
+                    <textarea
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        placeholder="Description"
+                        className="w-full h-[144px] px-[21px] py-[16px] border border-[var(--border-01)] rounded-[12px] font-urbanist font-normal text-[16px] text-[var(--grey-800)] placeholder:text-[#666d80] focus:outline-none focus:ring-1 focus:ring-[var(--brand)] resize-none"
+                    />
+                </div>
+
+                {/* Date & Time */}
+                <div className="flex gap-[24px]">
+                    {/* Date */}
+                    <div className="flex-1 flex flex-col gap-[8px]">
+                        <label className="font-urbanist font-semibold text-[16px] text-[var(--grey-800)] tracking-[0.16px] leading-none">
+                            Date
                         </label>
                         <div className="relative">
                             <input
-                                type="text"
-                                value={title}
-                                onChange={(e) => setTitle(e.target.value)}
-                                placeholder="Title"
-                                className="w-full h-[48px] px-[21px] border border-[var(--border-01)] rounded-[12px] text-[16px] font-inter text-[var(--grey-800)] placeholder:text-[#8e8e8e] focus:outline-none focus:ring-1 focus:ring-[var(--brand)]"
+                                type="date"
+                                value={eventDate}
+                                onChange={(e) => setEventDate(e.target.value)}
+                                className="w-full h-[48px] px-[21px] border border-[var(--border-01)] rounded-[12px] font-urbanist font-normal text-[16px] text-[var(--grey-800)] placeholder:text-[#666d80] focus:outline-none focus:ring-1 focus:ring-[var(--brand)] appearance-none"
+                                style={{ colorScheme: 'light' }}
                             />
                         </div>
                     </div>
-
-                    {/* Row: Speaker & Date/Time */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Speaker */}
-                        <div className="space-y-2">
-                            <label className="block text-[16px] font-semibold font-inter text-[#4b4b4b] tracking-[0.16px]">
-                                Speaker
-                            </label>
-                            <div className="relative">
-                                <input
-                                    type="text"
-                                    value={speaker}
-                                    onChange={(e) => setSpeaker(e.target.value)}
-                                    placeholder="Speaker Name"
-                                    className="w-full h-[48px] px-[21px] border border-[var(--border-01)] rounded-[12px] text-[16px] font-inter text-[var(--grey-800)] placeholder:text-[#8e8e8e] focus:outline-none focus:ring-1 focus:ring-[var(--brand)]"
-                                />
-                                <ChevronDownIcon className="absolute right-[21px] top-1/2 -translate-y-1/2 text-[#8e8e8e] pointer-events-none" size={20} />
-                            </div>
-                        </div>
-
-                        {/* Date & Time */}
-                        <div className="space-y-2">
-                            <label className="block text-[16px] font-semibold font-inter text-[#4b4b4b] tracking-[0.16px]">
-                                Date & Time
-                            </label>
-                            <div className="relative">
-                                <button className="w-full h-[48px] px-[21px] border border-[var(--border-01)] rounded-[12px] flex items-center justify-between bg-white hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-[var(--brand)]">
-                                    <span className="text-[16px] font-inter text-[var(--grey-800)]">
-                                        {date && time ? `${date} ${time}` : 'Select Date & Time'}
-                                    </span>
-                                    <CalendarIcon className="text-[var(--grey-800)]" size={20} />
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Description */}
-                    <div className="space-y-2">
-                        <label className="block text-[16px] font-semibold font-inter text-[#4b4b4b] tracking-[0.16px]">
-                            Description
+                    {/* Start Time */}
+                    <div className="flex-1 flex flex-col gap-[8px]">
+                        <label className="font-urbanist font-semibold text-[16px] text-[var(--grey-800)] tracking-[0.16px] leading-none">
+                            Start Time
                         </label>
-                        <textarea
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                            placeholder="Description"
-                            className="w-full h-[120px] p-[21px] border border-[var(--border-01)] rounded-[12px] text-[16px] font-inter text-[var(--grey-800)] placeholder:text-[#8e8e8e] focus:outline-none focus:ring-1 focus:ring-[var(--brand)] resize-none"
+                        <TimePicker
+                            value={startTime}
+                            onChange={setStartTime}
+                            placeholder="00:00"
                         />
                     </div>
-
-                    {/* Row: Link & Venue */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Registration Link */}
-                        <div className="space-y-2">
-                            <label className="block text-[16px] font-semibold font-inter text-[#4b4b4b] tracking-[0.16px]">
-                                Registration Link <span className="font-normal font-inter">(Optional)</span>
-                            </label>
-                            <input
-                                type="text"
-                                value={link}
-                                onChange={(e) => setLink(e.target.value)}
-                                placeholder="Link"
-                                className="w-full h-[48px] px-[21px] border border-[var(--border-01)] rounded-[12px] text-[16px] font-inter text-[var(--grey-800)] placeholder:text-[#8e8e8e] focus:outline-none focus:ring-1 focus:ring-[var(--brand)]"
-                            />
-                        </div>
-
-                        {/* Venue */}
-                        <div className="space-y-2">
-                            <label className="block text-[16px] font-semibold font-inter text-[#4b4b4b] tracking-[0.16px]">
-                                Venue
-                            </label>
-                            <input
-                                type="text"
-                                value={venue}
-                                onChange={(e) => setVenue(e.target.value)}
-                                placeholder="Venue"
-                                className="w-full h-[48px] px-[21px] border border-[var(--border-01)] rounded-[12px] text-[16px] font-inter text-[var(--grey-800)] placeholder:text-[#8e8e8e] focus:outline-none focus:ring-1 focus:ring-[var(--brand)]"
-                            />
-                        </div>
+                    {/* End Time */}
+                    <div className="flex-1 flex flex-col gap-[8px]">
+                        <label className="font-urbanist font-semibold text-[16px] text-[var(--grey-800)] tracking-[0.16px] leading-none">
+                            End Time
+                        </label>
+                        <TimePicker
+                            value={endTime}
+                            onChange={setEndTime}
+                            placeholder="00:00"
+                        />
                     </div>
+                </div>
 
-                    {/* Row: Upload Image & Location */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Upload Image */}
-                        <div className="space-y-2">
-                            <label className="block text-[16px] font-semibold font-inter text-[#4b4b4b] tracking-[0.16px]">
-                                Upload Image <span className="font-normal font-inter">(Optional)</span>
-                            </label>
-                            <label className="flex items-center justify-between w-full h-[48px] px-[21px] border border-[var(--border-01)] rounded-[12px] cursor-pointer hover:bg-gray-50 transition-colors">
-                                <span className={`text-[16px] font-inter ${imageName ? 'text-[var(--grey-800)]' : 'text-[#8e8e8e]'}`}>
-                                    {imageName || 'Image Upload'}
+                {/* Registration Link & Upload Image Row */}
+                <div className="flex gap-[24px]">
+                    {/* Registration Link */}
+                    <div className="flex-1 flex flex-col gap-[8px]">
+                        <label className="font-urbanist font-semibold text-[16px] text-[var(--grey-800)] tracking-[0.16px] leading-none">
+                            Registration Link <span className="font-urbanist font-normal">(Optional)</span>
+                        </label>
+                        <input
+                            type="text"
+                            value={link}
+                            onChange={(e) => setLink(e.target.value)}
+                            placeholder="Link"
+                            className="w-full h-[48px] px-[21px] border border-[var(--border-01)] rounded-[12px] font-urbanist font-normal text-[16px] text-[var(--grey-800)] placeholder:text-[#666d80] focus:outline-none focus:ring-1 focus:ring-[var(--brand)]"
+                        />
+                    </div>
+                    {/* Upload Image */}
+                    <div className="flex-1 flex flex-col gap-[8px]">
+                        <label className="font-urbanist font-semibold text-[16px] text-[var(--grey-800)] tracking-[0.16px] leading-none">
+                            Upload Image <span className="font-urbanist font-normal">(Optional)</span>
+                        </label>
+                        {imageName ? (
+                            <div className="flex items-center w-full h-[48px] px-[21px] border border-[var(--border-01)] rounded-[12px] bg-white overflow-hidden">
+                                <span className="font-urbanist font-normal text-[16px] text-[var(--grey-800)] truncate">
+                                    {imageName}
                                 </span>
-                                <UploadIcon className="text-[#8e8e8e]" size={20} />
+                                <button
+                                    onClick={() => setImageName('')}
+                                    className="ml-[6px] text-[#666d80] hover:text-[var(--grey-800)] transition-colors text-[16px] leading-none shrink-0"
+                                    type="button"
+                                >
+                                    ×
+                                </button>
+                            </div>
+                        ) : (
+                            <label className="flex items-center justify-between w-full h-[48px] px-[21px] border border-[var(--border-01)] rounded-[12px] cursor-pointer hover:bg-gray-50 transition-colors">
+                                <span className="font-urbanist font-normal text-[16px] text-[#666d80]">
+                                    Image Upload
+                                </span>
+                                <UploadIcon className="text-[var(--grey-800)]" size={20} />
                                 <input
                                     type="file"
                                     className="hidden"
@@ -191,40 +245,35 @@ export default function AddEventModal({ isOpen, onClose, event }: AddEventModalP
                                     }}
                                 />
                             </label>
-                        </div>
-
-                        {/* Location (Hidden in design but present in list) - keeping it optional/hidden or same as venue? 
-                             Design Node 261:5703 shows it opacity-0, so hidden? 
-                             "Venue" handles the physical location. I'll stick to Venue.
-                         */}
+                        )}
                     </div>
-
-                    <p className="text-[12px] font-inter text-[#696969]">
-                        *When you publish the event is goes live in the Mobile App*
-                    </p>
                 </div>
 
+                {/* Note */}
+                <p className="font-urbanist font-normal text-[12px] text-[#666d80] leading-normal">
+                    *When you publish the event in goes live in the Mobile App**
+                </p>
+
                 {/* Footer Buttons */}
-                <div className="flex justify-end gap-6 pt-4 border-t border-gray-100">
+                <div className="flex items-center justify-end gap-[24px]">
                     <button
                         onClick={onClose}
-                        className="h-[44px] px-[24px] border border-[var(--border-01)] rounded-[12px] text-[16px] font-medium font-inter text-[#4b4b4b] hover:bg-gray-50 transition-colors"
+                        className="h-[44px] px-[24px] flex items-center justify-center border border-[var(--border-01)] rounded-[12px] font-urbanist font-medium text-[16px] text-[var(--grey-800)] text-center hover:bg-gray-50 transition-colors"
                     >
                         Cancel
                     </button>
-                    <div className="flex items-center gap-6">
-                        {isEditMode ? (
+                    <div className="flex items-center gap-[24px]">
+                        {!isEditMode && (
                             <button
-                                onClick={handleSave} // Save draft logic?
-                                className="h-[44px] px-[24px] border border-[var(--border-01)] rounded-[12px] text-[16px] font-medium font-inter text-[#4b4b4b] hover:bg-gray-50 transition-colors"
+                                onClick={() => handleSave(true)}
+                                className="h-[44px] px-[24px] flex items-center justify-center border border-[var(--border-01)] rounded-[12px] font-urbanist font-medium text-[16px] text-[var(--grey-800)] text-center hover:bg-gray-50 transition-colors"
                             >
                                 Save as Draft
                             </button>
-                        ) : null}
-
+                        )}
                         <button
-                            onClick={handleSave}
-                            className="h-[44px] px-[24px] bg-[var(--brand)] rounded-[12px] text-[16px] font-medium font-inter text-white hover:bg-[var(--brand-06)] transition-colors shadow-sm"
+                            onClick={() => handleSave(false)}
+                            className="h-[44px] px-[24px] flex items-center justify-center bg-[var(--brand)] rounded-[12px] font-urbanist font-medium text-[16px] text-white text-center hover:bg-[#065d29] transition-colors"
                         >
                             {isEditMode ? 'Save & Publish' : 'Publish'}
                         </button>
