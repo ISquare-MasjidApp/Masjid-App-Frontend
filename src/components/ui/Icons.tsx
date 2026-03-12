@@ -289,6 +289,55 @@ export const ListIcon = ({ className = '', size = 20 }: IconProps) => (
   </svg>
 );
 
+// Grid view icon matching Figma content switcher (active state)
+export const GridViewIcon = ({ className = '', size = 18 }: IconProps) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 18 18"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    {/* Three horizontal rows with left dot + line */}
+    <circle cx="3" cy="4" r="1" fill="currentColor" stroke="none" />
+    <line x1="6" y1="4" x2="15" y2="4" />
+    <circle cx="3" cy="9" r="1" fill="currentColor" stroke="none" />
+    <line x1="6" y1="9" x2="15" y2="9" />
+    <circle cx="3" cy="14" r="1" fill="currentColor" stroke="none" />
+    <line x1="6" y1="14" x2="15" y2="14" />
+  </svg>
+);
+
+// Calendar view icon matching Figma content switcher
+export const CalendarViewIcon = ({ className = '', size = 18 }: IconProps) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 18 18"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <rect x="2" y="3" width="14" height="13" rx="2" />
+    <line x1="2" y1="7" x2="16" y2="7" />
+    <line x1="6" y1="3" x2="6" y2="1" />
+    <line x1="12" y1="3" x2="12" y2="1" />
+    {/* Calendar grid dots */}
+    <circle cx="6" cy="10" r="0.75" fill="currentColor" stroke="none" />
+    <circle cx="9" cy="10" r="0.75" fill="currentColor" stroke="none" />
+    <circle cx="12" cy="10" r="0.75" fill="currentColor" stroke="none" />
+    <circle cx="6" cy="13" r="0.75" fill="currentColor" stroke="none" />
+    <circle cx="9" cy="13" r="0.75" fill="currentColor" stroke="none" />
+  </svg>
+);
+
 export const FilterIcon = ({ className = '', size = 20 }: IconProps) => (
   <svg
     width={size}
