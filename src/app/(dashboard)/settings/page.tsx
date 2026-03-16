@@ -233,7 +233,8 @@ export default function SettingsPage() {
     if (stripeParam === 'success') {
       setActiveTab('bank');
       setToast({ message: 'Stripe connected! Syncing account status...', type: 'success' });
-      fetchSettings();
+      // Call status endpoint directly to get fresh data from Stripe
+      getStripeStatus().then(setStripeStatus).catch(() => fetchSettings());
     } else if (stripeParam === 'refresh') {
       setActiveTab('bank');
       setToast({ message: 'Stripe onboarding expired. Please reconnect.', type: 'error' });
@@ -662,27 +663,6 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            <div className="h-[2px] bg-[#f6f6f6] rounded-[2px]" />
-
-            <div className="flex gap-[24px]">
-              <SettingInput label="Account Holder Name" value={bankAccountName} onChange={setBankAccountName} />
-              <SettingInput label="Bank Name" value={bankName} onChange={setBankName} />
-            </div>
-
-            <div className="flex gap-[24px]">
-              <SettingInput label="Account Number" value={bankAccountNumber} onChange={setBankAccountNumber} />
-              <SettingInput label="Sort Code" value={bankSortCode} onChange={setBankSortCode} />
-            </div>
-
-            <div className="flex justify-end">
-              <button
-                onClick={handleSavePayment}
-                disabled={savingPayment}
-                className="h-[44px] px-[24px] bg-[var(--brand)] text-white rounded-[12px] font-urbanist font-medium text-[16px] hover:bg-[#065d29] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {savingPayment ? 'Saving...' : 'Save'}
-              </button>
-            </div>
           </div>
         )
       )}
